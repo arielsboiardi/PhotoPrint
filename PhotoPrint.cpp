@@ -39,11 +39,14 @@ private:
     void OnSetStageSpeed(wxCommandEvent& event);
     void OnExit(wxCommandEvent& event);
     void OnAbout(wxCommandEvent& event);
+    void OnStartPasses(wxCommandEvent& event);
 
     wxPanel *StageXYMPanel; 
+    wxPanel *MultiPassPanel;
     wxTextCtrl *StageSPDCtrl;
     wxTextCtrl *StageXMCtrl;
     wxTextCtrl *StageYMCtrl;
+    wxTextCtrl *PassesCtrl;
 };
 
 wxIMPLEMENT_APP(MyApp);
@@ -140,8 +143,25 @@ wxFrame(NULL, wxID_ANY, title), serial(io)
     StageXYMSizer -> Add(StageCtrlSizer, 1, wxALL, 5);
     StageXYMSizer -> Add(MoveStageButton, 0, wxEXPAND|wxALL, 5);
 
+    // Multi-pass panel
+    MultiPassPanel = new wxPanel(this, wxID_ANY);
+    wxStaticBoxSizer *MultiPassSizer = new wxStaticBoxSizer(wxHORIZONTAL, MultiPassPanel, wxT("Multi-Pass"));
+    MultiPassPanel->SetSizer(MultiPassSizer);
+
+    // Multi-pass controls
+    wxStaticText *PassesLabel = new wxStaticText(MultiPassPanel, wxID_ANY, wxT("Number of Passes"));
+    PassesCtrl = new wxTextCtrl(MultiPassPanel, wxID_ANY, wxT("1"));
+    wxButton *StartPassesButton = new wxButton(MultiPassPanel, wxID_ANY, wxT("Start"), wxDefaultPosition);
+    StartPassesButton->Bind(wxEVT_BUTTON, &MyFrame::OnStartPasses, this);
+
+    // Add controls to sizer
+    MultiPassSizer->Add(PassesLabel, 0, wxALIGN_CENTER | wxALL, 5);
+    MultiPassSizer->Add(PassesCtrl, 1, wxALL, 5);
+    MultiPassSizer->Add(StartPassesButton, 0, wxEXPAND | wxALL, 5);
+
     // Disable stage movement controls
     StageXYMPanel -> Enable(false);
+    MultiPassPanel -> Enable(false);
 
     // Status bar
     CreateStatusBar();
@@ -150,6 +170,7 @@ wxFrame(NULL, wxID_ANY, title), serial(io)
     // Add content to main sizer
     FrameBoxSizer->Add(PortSelectPanel,0,wxEXPAND|wxALL,5);
     FrameBoxSizer->Add(StageXYMPanel,0,wxEXPAND|wxALL,5);
+    FrameBoxSizer->Add(MultiPassPanel, 0, wxEXPAND | wxALL, 5);
 
     // Set size hints
     FrameBoxSizer -> SetSizeHints(this);
@@ -187,6 +208,7 @@ void MyFrame::OnMoveStage(wxCommandEvent& event)
         wxLogStatus(wxString("Stage not connected"));
     }
 
+    wxLogStatus(wxString("Finished"));
     
 }
 
@@ -204,6 +226,36 @@ void MyFrame::OnSetStageSpeed(wxCommandEvent &event)
     }
 }
 
+void MyFrame::OnStartPasses(wxCommandEvent& event)
+{
+    int passes = wxAtoi(PassesCtrl->GetValue());
+    wxLogStatus(wxString("Starting ") + wxString::Format("%d", passes) + wxString(" passes"));
+
+    int x = wxAtoi(StageXMCtrl->GetValue());
+    int y = wxAtoi(StageYMCtrl->GetValue());
+
+    int sign = 1;
+
+    if(stage->isConnected())
+    {
+        for(int i = 0; i < passes; ++i)
+        {
+            wxLogStatus(wxString("Pass ") + wxString::Format("%d", i + 1));
+
+            // Move stage   
+            stage->move(sign*1000*x,sign*1000*y);
+
+            // Change direction
+            sign *= -1;
+        }
+        wxLogStatus("All passes completed");
+    }
+    else
+    {
+        wxLogStatus("Stage not connected");
+    }
+}
+
 void MyFrame::OnConnect(wxCommandEvent &event)
 {
     if(stage==nullptr)   
@@ -217,6 +269,7 @@ void MyFrame::OnConnect(wxCommandEvent &event)
 
         // Enable stage movement controls
         StageXYMPanel -> Enable(true);
+        MultiPassPanel -> Enable(true);
 
         // Update speed 
         StageSPDCtrl -> SetValue(wxString::Format("%d",stage->speed*10)); 

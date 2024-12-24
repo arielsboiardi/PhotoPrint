@@ -28,6 +28,9 @@ set_target_properties(BX3SSUlib PROPERTIES LINKER_LANGUAGE CXX)
 add_library(Arduinolib STATIC devices/Arduino.hpp)
 set_target_properties(Arduinolib PROPERTIES LINKER_LANGUAGE CXX)
 
+add_library(ArduinoNanoESP32lib STATIC devices/ArduinoNanoESP32.hpp)
+set_target_properties(ArduinoNanoESP32lib PROPERTIES LINKER_LANGUAGE CXX)
+
 add_library(Seriallib STATIC devices/Serial.hpp)
 set_target_properties(Seriallib PROPERTIES LINKER_LANGUAGE CXX)
 

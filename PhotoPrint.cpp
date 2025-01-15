@@ -1,10 +1,12 @@
 #include <SDKDDKVer.h>
 #include <BX3SSU.hpp> 
 #include <Arduino.hpp>  
+#include <ArduinoNanoESP32.hpp>
 #include <Serial.hpp>
 
 // For compilers that support precompilation, includes "wx/wx.h".
 #include <wx/wxprec.h>
+#include <wx/tglbtn.h>
  
 #ifndef WX_PRECOMP
     #include <wx/wx.h>
@@ -14,7 +16,6 @@ class MyApp : public wxApp
 {
 public:
     virtual bool OnInit();
-
 };
  
 class MyFrame : public wxFrame
@@ -26,6 +27,7 @@ private:
     asio::io_service io;
     asio::serial_port serial;
     BX3SSU *stage=nullptr;
+    ArduinoNanoESP32 *controller=nullptr;
 
     wxChoice* PortChoice;
     wxArrayString PortList;
@@ -258,21 +260,14 @@ void MyFrame::OnStartPasses(wxCommandEvent& event)
 
 void MyFrame::OnConnect(wxCommandEvent &event)
 {
-    if(stage==nullptr)   
+    if(controller==nullptr)   
     {
         // Get selected port
         auto choice = PortChoice -> GetSelection();
         std::string SelectedPort = PortList[choice];
         
-        // Create BX3SSU object
-        stage = new BX3SSU(io,SelectedPort);
-
-        // Enable stage movement controls
-        StageXYMPanel -> Enable(true);
-        MultiPassPanel -> Enable(true);
-
-        // Update speed 
-        StageSPDCtrl -> SetValue(wxString::Format("%d",stage->speed*10)); 
+        // Create controller object
+        controller = new ArduinoNanoESP32(io,SelectedPort);
 
         // Update button label
         ConnectButton->SetLabel("Disconnect");
@@ -280,12 +275,9 @@ void MyFrame::OnConnect(wxCommandEvent &event)
     }
     else
     {
-        // Delete BX3SSU object
-        stage->~BX3SSU();
-        stage = nullptr;
-
-        // Disable stage movement controls
-        StageXYMPanel -> Enable(false);
+        // Delete controller object
+        controller->~ArduinoNanoESP32();
+        controller = nullptr;
 
         // Update button label
         ConnectButton->SetLabel("Connect");

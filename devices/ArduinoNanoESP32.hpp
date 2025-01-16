@@ -8,9 +8,13 @@ public:
 	ArduinoNanoESP32(asio::io_service& io, const std::string& port_name);
 	~ArduinoNanoESP32();
 	
+	// Stage control functions
 	void move_stage(int x, int y);
 	void set_stage_speed(int speed);
-	void is_connected();
+	void stop_stage();
+
+	// Projector control functions
+	void projector_on(bool toggle);
 
 private: 
 
@@ -41,3 +45,40 @@ ArduinoNanoESP32::~ArduinoNanoESP32()
 	// Close the serial port
 	serial.close();
 };
+
+// Stage control functions
+
+void ArduinoNanoESP32::move_stage(int x, int y)
+{
+	// Move stage
+	std::string command = "stage -move " + std::to_string(x) + "," + std::to_string(y) + "\n";
+	asio::write(serial, asio::buffer(command, command.length()));
+};
+
+void ArduinoNanoESP32::set_stage_speed(int speed)
+{
+	// Set stage speed
+	std::string command = "stage -speed " + std::to_string(speed) + "\n";
+	asio::write(serial, asio::buffer(command, command.length()));
+};
+
+void ArduinoNanoESP32::stop_stage()
+{
+	// Stop stage
+	asio::write(serial, asio::buffer("stage -stop\n", 12));
+};
+
+// Projector control functions
+void ArduinoNanoESP32::projector_on(bool toggle=true)
+{
+	if (toggle)
+	{
+		// Turn on projector
+		asio::write(serial, asio::buffer("projector -on\n", 14));
+	}
+	else
+	{
+		// Turn off projector
+		asio::write(serial, asio::buffer("projector -off\n", 15));
+	}
+}

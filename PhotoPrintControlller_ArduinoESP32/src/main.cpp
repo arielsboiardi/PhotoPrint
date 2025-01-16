@@ -16,7 +16,7 @@
  * to the ESP32 via I2C on pins A4 (SCL) and A5 (SDA) and to the J17 connector on the stage controller. 
  * The device has an I2C address of 0x1A.
  * 
- * @author Ariel S. Boiardi
+ * @author Ariel S. Boiardi 
  * @date 15/01/2025
  */
 #include <Arduino.h>    // Include the Arduino library
@@ -25,6 +25,16 @@
 
 // Constants
 #define I2C_ADDRESS 0x1A  // I2C address of the projector on connector J17
+
+// Utilities 
+
+void millisWait(unsigned long ms) {
+  unsigned long tic = millis();
+  while (millis() - tic < ms) {
+    // Busy-wait
+  }
+}
+
 
 // CLI 
 SimpleCLI cli;
@@ -37,18 +47,23 @@ int stageSpeedDefault = 5;
 bool StageLog = false;
 
 /**
- * @brief Reads a response from the stage on Serial 1 until a newline character is encountered.
+ * @brief Reads a response from the stage on Serial1 until a newline character is encountered.
  * 
- * This function waits until data is available on the Serial1 interface, then reads the incoming
- * data as a string until a newline character ('\n') is encountered. The newline character is 
- * removed from the end of the string before returning the response.
+ * This function reads the incoming data from the Serial1 interface as a string until a newline 
+ * character ('\n') is encountered. If the wait parameter is true, it will busy-wait until data 
+ * is available. The newline character is removed from the end of the string before returning 
+ * the response.
  * 
+ * @param wait A boolean value indicating whether to wait for data to be available.
+ *             - true: Wait until data is available.
+ *             - false: Return immediately if no data is available.
  * @return String The response read from the Serial1 interface, with the newline character removed.
  */
-String readSerialResponse() {
-  
-  while (!Serial1.available()) {
-    // Busy-wait until data is available
+String StageResponse(bool wait = false) {
+  if (wait) {
+    while (!Serial1.available()) {
+      // Busy-wait until data is available
+    }
   }
   String response = Serial1.readStringUntil('\n');
   response.remove(response.length() - 1);
@@ -83,7 +98,7 @@ void StageStart(){
   for (const String command : startupSequence) {
     Serial.println(command); // Optionally print the command to the Serial monitor
     Serial1.print(String(command) + "\r\n");
-    response = readSerialResponse();
+    response = StageResponse(true);
     Serial.println(response); // Optionally print the response to the Serial monitor
   }
 }
@@ -105,7 +120,7 @@ void StageClose(){
   for (const String command : closeSequence) {
     Serial.println(command); // Optionally print the command to the Serial monitor
     Serial1.print(String(command) + "\r\n");
-    response = readSerialResponse();
+    response = StageResponse(true);
     Serial.println(response); // Optionally print the response to the Serial monitor
   }
 }
@@ -122,7 +137,7 @@ void StageClose(){
 void StageSpeed(int speed) {
   String response;
   Serial1.print("3XYSPD " + String(speed) + "\r\n");
-  response = readSerialResponse();
+  response = StageResponse(true);
   Serial.println(response);
 }
 
@@ -135,10 +150,10 @@ void StageSpeed(int speed) {
  * 
  * @param position A string representing the position to move the stage to in the format "x,y".
  */
-void StageMove(String position) {
+void StageMove(String position, bool wait = false) {
   String response;
   Serial1.print("3XYM " + position + "\r\n");
-  response = readSerialResponse();
+  response = StageResponse(wait);
   Serial.println(response);
 }
 
@@ -189,7 +204,7 @@ void stageCallback(cmd* c) {
   // Set the speed of the stage
   if (speedValue != 0) {
     Serial.println("Setting speed to " + String(speedValue));
-        StageSpeed(speedValue);
+    StageSpeed(speedValue);
   }
 
   // Move the by the specified offset
@@ -366,12 +381,11 @@ void setup() {
  * incoming data from the stage controller on Serial1 interface.
  */
 void loop() {
-  String response = Serial1.readStringUntil('\n');
-  response.remove(response.length() - 1);
+  
+  String response = StageResponse();
   if (response.length() > 0){
     Serial.println(response);
   }
 
-  delay(100);
 }
 

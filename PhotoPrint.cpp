@@ -38,6 +38,7 @@ private:
     wxButton* ConnectButton;
 
     void OnMoveStage(wxCommandEvent& event);
+    void OnStopStage(wxCommandEvent& event);
     void OnSetStageSpeed(wxCommandEvent& event);
     void OnExit(wxCommandEvent& event);
     void OnAbout(wxCommandEvent& event);
@@ -118,6 +119,7 @@ wxFrame(NULL, wxID_ANY, title), serial(io)
     wxBoxSizer* StageSPDSizer = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer* StageXCtrlSizer = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer* StageYCtrlSizer = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer* StageButtonSizer = new wxBoxSizer(wxVERTICAL);
 
     wxStaticText *StageSPDLabel = new wxStaticText(StageXYMPanel,wxID_ANY,wxT("Speed [um/s]"));
     StageSPDCtrl = new wxTextCtrl(StageXYMPanel,wxID_ANY,wxT("0"));
@@ -134,7 +136,9 @@ wxFrame(NULL, wxID_ANY, title), serial(io)
     wxStaticText *StageYMLabel = new wxStaticText(StageXYMPanel,wxID_ANY,wxT("Y [um]"));
     StageYMCtrl = new wxTextCtrl(StageXYMPanel,wxID_ANY,wxT("0"));
     wxButton * MoveStageButton = new wxButton(StageXYMPanel,wxID_ANY,wxT("Move"),wxDefaultPosition);
+    wxButton * StopStageButton = new wxButton(StageXYMPanel,wxID_ANY,wxT("Stop"),wxDefaultPosition);
     MoveStageButton -> Bind(wxEVT_BUTTON,&MyFrame::OnMoveStage,this);
+    // StopStageButton -> Bind(wxEVT_BUTTON,&MyFrame::OnStopStage,this);
 
     StageXCtrlSizer -> Add(StageXMLabel, 0, wxALIGN_CENTER|wxALL, 5);
     StageXCtrlSizer -> Add(StageXMCtrl, 1, wxALL, 5);
@@ -143,7 +147,9 @@ wxFrame(NULL, wxID_ANY, title), serial(io)
     StageCtrlSizer -> Add(StageXCtrlSizer, 1, wxEXPAND);
     StageCtrlSizer -> Add(StageYCtrlSizer, 1, wxEXPAND);
     StageXYMSizer -> Add(StageCtrlSizer, 1, wxALL, 5);
-    StageXYMSizer -> Add(MoveStageButton, 0, wxEXPAND|wxALL, 5);
+    StageButtonSizer -> Add(MoveStageButton, 1, wxEXPAND|wxALL, 5);
+    StageButtonSizer -> Add(StopStageButton, 1, wxEXPAND|wxALL, 5);
+    StageXYMSizer -> Add(StageButtonSizer, 0, wxEXPAND);
 
     // Multi-pass panel
     MultiPassPanel = new wxPanel(this, wxID_ANY);

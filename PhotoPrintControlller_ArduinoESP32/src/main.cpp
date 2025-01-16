@@ -308,7 +308,7 @@ void setup() {
   stage = cli.addCmd("stage", stageCallback);
   stage.addFlagArg("start");
   stage.addFlagArg("close");
-  stage.addArg("speed", "5");
+  stage.addArg("speed", "0");
   stage.addArg("move", "0,0");
   stage.addFlagArg("log");
   stage.addFlagArg("stop");

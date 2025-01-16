@@ -186,10 +186,9 @@ void stageCallback(cmd* c) {
   }
 
   // Set the speed of the stage
-  if (speedValue != stageSpeedDefault) {
+  if (speedValue != 0) {
     Serial.println("Setting speed to " + String(speedValue));
-    stageSpeedDefault = speedValue;
-    StageSpeed(speedValue);
+        StageSpeed(speedValue);
   }
 
   // Move the by the specified offset

@@ -30,6 +30,7 @@
 SimpleCLI cli;
 Command stage;
 Command projector;
+Command print;
 
 // Stage 
 int stageSpeedDefault = 5;
@@ -270,6 +271,38 @@ void projectorCallback(cmd* c) {
 
 }
 
+// Print
+
+/**
+ * @brief Prints from a specified length with initial and final wait.
+ * 
+ * This function sends a command to the stage controller to move the stage by the specified length
+ * to photopolymerize the hydrogel. The length is provided as an integer value representing the length
+ * in nanometers. The function also optionally waits a specified time before and after the print.
+ * 
+ * @param length The length of paper to print in micrometers.
+ * @param wait An integer value representing the time to wait in seconds before and after the print.
+ */
+void printCallback(cmd* c) {
+  Command cmd(c);
+
+  Argument length = cmd.getArg("length");
+  Argument wait = cmd.getArg("wait");
+
+  int lengthValue = length.getValue().toInt();
+  int waitValue = wait.getValue().toInt();
+
+  Serial.println("Printing " + String(lengthValue/1000) + " um");
+  projectorToggle(true);
+  millisWait(waitValue * 1000);
+  StageMove(String(lengthValue)+",0", true);
+  millisWait(waitValue * 1000);
+  projectorToggle(false);
+  Serial.println("Print finished");
+
+}
+
+
 // PC Serial Communication
 
 /**
@@ -318,6 +351,12 @@ void setup() {
   projector = cli.addCmd("projector", projectorCallback);
   projector.addFlagArg("on");
   projector.addFlagArg("off");
+
+  // Set up print CLI
+  print = cli.addCmd("print", printCallback);
+  print.addPosArg("length");
+  print.addArg("wait","0");
+
 }
 
 /**

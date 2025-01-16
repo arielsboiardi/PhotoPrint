@@ -203,35 +203,27 @@ void MyFrame::OnAbout(wxCommandEvent& event)
 void MyFrame::OnMoveStage(wxCommandEvent& event)
 {
     int x = wxAtoi(StageXMCtrl->GetValue());
-    int y = wxAtoi(StageYMCtrl->GetValue());
+    int y = wxAtoi(StageYMCtrl  ->GetValue());
 
     wxLogStatus(wxString("Moving stage by (") + wxString::Format("%d", x) + wxString(", ") + wxString::Format("%d", y) + wxString(") um"));
 
-    if(stage -> isConnected())
-    {
-        stage->move(1000*x,1000*y);
-    }
-    else
-    {
-        wxLogStatus(wxString("Stage not connected"));
-    }
+    controller->move_stage(1000*x,1000*y);
 
     wxLogStatus(wxString("Finished"));
     
+}
+
+void MyFrame::OnStopStage(wxCommandEvent& event)
+{
+    controller->stop_stage();
+    wxLogStatus("Stage stopped");
 }
 
 void MyFrame::OnSetStageSpeed(wxCommandEvent &event)
 {
     int speed = wxAtoi(StageSPDCtrl->GetValue());
     wxLogStatus(wxString("Setting stage speed to ") + wxString::Format("%d", speed) + wxString(" um/s"));
-    if(stage -> isConnected())
-    {
-        stage->setSpeed(speed/10);
-    }
-    else
-    {
-        wxLogStatus(wxString("Stage not connected"));
-    }
+    controller->set_stage_speed(speed/10);
 }
 
 void MyFrame::OnStartPasses(wxCommandEvent& event)
@@ -278,6 +270,10 @@ void MyFrame::OnConnect(wxCommandEvent &event)
         // Update button label
         ConnectButton->SetLabel("Disconnect");
         SetStatusText("Connected to "+PortList[PortChoice->GetSelection()]);
+
+        // Enable stage movement controls
+        StageXYMPanel -> Enable(true);
+        MultiPassPanel -> Enable(true);
     }
     else
     {
@@ -288,6 +284,10 @@ void MyFrame::OnConnect(wxCommandEvent &event)
         // Update button label
         ConnectButton->SetLabel("Connect");
         SetStatusText("Connect to a port");
+
+        // Disable stage movement controls
+        StageXYMPanel -> Enable(false);
+        MultiPassPanel -> Enable(false);
     }
 }
 
